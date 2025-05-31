@@ -60,7 +60,6 @@ ipcMain.handle('showSaveDialog', async () => {
 });
 
 ipcMain.handle('saveFile', async (_event, filePath: string, arrayBuffer: ArrayBuffer) => {
-  // Wrap in a Node.js Buffer (typed array)
   const buffer = Buffer.from(arrayBuffer);
 
   return new Promise<void>((resolve, reject) => {

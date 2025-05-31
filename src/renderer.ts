@@ -1,5 +1,6 @@
 import './index.css';
-import { Buffer } from "buffer"
+import { Buffer } from "buffer";
+import fixWebmDuration from 'webm-duration-fix';
 
 let sources:any;
 
@@ -55,9 +56,9 @@ async function startRecording() {
 async function stopRecording() {
   video.srcObject = null;
 
-  const blob = new Blob(chunks, {
+  const blob = await fixWebmDuration(new Blob(chunks, {
     type: 'video/webm; codecs=vp9'
-  });
+  }));
 
   const buffer = Buffer.from(await blob.arrayBuffer());
   chunks = [];
