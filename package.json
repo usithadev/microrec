@@ -1,7 +1,7 @@
 {
   "name": "microrec",
   "productName": "MicroRec",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple screen recorder made by Usitha",
   "main": ".webpack/main",
   "scripts": {
