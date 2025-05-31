@@ -23,7 +23,6 @@ const createWindow = (): void => {
 
   mainWindow.setMenu(null);
 
-  // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 };
 
