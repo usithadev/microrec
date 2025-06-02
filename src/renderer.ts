@@ -3,6 +3,7 @@ import { Buffer } from "buffer";
 import fixWebmDuration from 'webm-duration-fix';
 
 let sources:any;
+let path:any | String;
 
 document.addEventListener("DOMContentLoaded", async () => {
   sources = await (window as any).electronAPI.getSources();
@@ -13,9 +14,20 @@ let video = document.getElementById("video") as HTMLVideoElement;
 let startBtn = document.getElementById("startBtn") as HTMLButtonElement;
 let stopBtn = document.getElementById("stopBtn") as HTMLButtonElement;
 
-startBtn.addEventListener("click", startRecording);
-stopBtn.addEventListener("click", () => {
+startBtn.addEventListener("click", async () => {
+  const {canceled, filePath} = await (window as any).electronAPI.saveDialog();
+  if (canceled) return;
+  
+  await (window as any).electronAPI.startWriteStream(filePath);
+  path = filePath;
+  startRecording();
+});
+
+
+stopBtn.addEventListener("click", async () => {
   mediaRecorder.stop();
+  await (window as any).electronAPI.stopWriteStream();
+  stopVideo();
 });
 
 let mediaRecorder:MediaRecorder;
@@ -43,28 +55,33 @@ async function startRecording() {
   video.muted = true;
   video.play();
 
-  mediaRecorder = new MediaRecorder(stream);
-  mediaRecorder.ondataavailable = (event) => {
-    chunks.push(event.data);
-  };
-  mediaRecorder.onstop = () => {
-    stopRecording();
+  mediaRecorder = new MediaRecorder(stream, {
+    mimeType: 'video/webm; codecs=vp9'
+  });
+
+  mediaRecorder.ondataavailable = async(e) => {
+    const arrayBuffer = await e.data.arrayBuffer();
+    (window as any).electronAPI.streamChunk(arrayBuffer);
   }
-  mediaRecorder.start();
+
+  mediaRecorder.start(1000);
 }
 
-async function stopRecording() {
+async function stopVideo() {
   video.srcObject = null;
+  path = null;
 
-  const blob = await fixWebmDuration(new Blob(chunks, {
-    type: 'video/webm; codecs=vp9'
-  }));
+  
 
-  const buffer = Buffer.from(await blob.arrayBuffer());
-  chunks = [];
+  // const blob = await fixWebmDuration(new Blob(chunks, {
+  //   type: 'video/webm; codecs=vp9'
+  // }));
 
-  const { canceled, filePath } = await (window as any).electronAPI.saveDialog();
-  if (canceled) return;
+  // const buffer = Buffer.from(await blob.arrayBuffer());
+  // chunks = [];
 
-  await (window as any).electronAPI.writef(filePath, buffer);
+  // const { canceled, filePath } = await (window as any).electronAPI.saveDialog();
+  // if (canceled) return;
+
+  // await (window as any).electronAPI.writef(filePath, buffer);
 }

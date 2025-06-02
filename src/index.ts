@@ -1,8 +1,10 @@
 import { app, BrowserWindow, dialog, desktopCapturer, ipcMain } from 'electron';
-import {writeFile} from "fs";
+import {writeFile, WriteStream, createWriteStream} from "fs";
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
+
+let writeStream : WriteStream | null = null;
 
 
 if (require('electron-squirrel-startup')) {
@@ -68,4 +70,39 @@ ipcMain.handle('saveFile', async (_event, filePath: string, arrayBuffer: ArrayBu
       else resolve();
     });
   });
+});
+
+// ipcMain.handle('startWriteStream', async (_event, filePath: string) => {
+//   writeStream = createWriteStream(filePath);
+// });
+
+// ipcMain.handle('streamChunk', async (_event, arrayBuffer: ArrayBuffer) => {
+//   const buffer = Buffer.from(arrayBuffer);
+//   writeStream?.write(buffer);
+// });
+
+// ipcMain.handle('stopWriteStream', async () => {
+//   writeStream?.close();
+//   writeStream = null;
+// });
+
+
+ipcMain.handle('startWriteStream', async (_event, filePath: string) => {
+  writeStream = createWriteStream(filePath);
+});
+
+ipcMain.handle('streamChunk', (_event, arrayBuffer: ArrayBuffer) => {
+  if (writeStream) {
+    const buffer = Buffer.from(arrayBuffer);
+    writeStream.write(buffer);
+  }
+});
+
+ipcMain.handle('stopWriteStream', async () => {
+  if (writeStream) {
+    await new Promise((resolve) => {
+      writeStream!.end(resolve);
+    });
+    writeStream = null;
+  }
 });
