@@ -8,7 +8,7 @@ const fixDuration = (filePath: string): Promise<void> => {
     const ffmpegProcess = spawn(ffmpeg.path, [
       '-i', filePath,
       '-c', 'copy',
-      '-y', // this is the magic overwrite flag ✨
+      '-y', 
       tempPath
     ]);
 
@@ -19,7 +19,6 @@ const fixDuration = (filePath: string): Promise<void> => {
     ffmpegProcess.on('exit', (code) => {
       if (code !== 0) return reject(new Error(`ffmpeg exited with code ${code}`));
 
-      // 🧼 Replace the original with the fixed version
       const fs = require('fs');
       fs.rename(tempPath, filePath, (err: any) => {
         if (err) return reject(err);
