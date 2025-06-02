@@ -1,31 +1,35 @@
-import ffmpeg from '@ffmpeg-installer/ffmpeg';
-import { spawn } from 'child_process';
+import path from 'path';
+import { execFile } from 'child_process';
+import fs from 'fs/promises'; 
+import {app} from "electron";
 
-const fixDuration = (filePath: string): Promise<void> => {
+const ffmpegPath = app.isPackaged ? path.join(process.resourcesPath, 'ffmpeg.exe') : path.join(__dirname, '../../assets', 'ffmpeg.exe');
+
+async function remuxAndOverwrite(inputPath: string): Promise<void> {
+  const tempPath = inputPath + '.temp.webm'; 
+
   return new Promise((resolve, reject) => {
-    const tempPath = filePath + '.temp.webm';
-
-    const ffmpegProcess = spawn(ffmpeg.path, [
-      '-i', filePath,
+    execFile(ffmpegPath, [
+      '-i', inputPath,
       '-c', 'copy',
-      '-y', 
+      '-movflags', 'faststart',
       tempPath
-    ]);
-
-    ffmpegProcess.stderr.on('data', (data) => {
-      console.log(`ffmpeg: ${data}`);
-    });
-
-    ffmpegProcess.on('exit', (code) => {
-      if (code !== 0) return reject(new Error(`ffmpeg exited with code ${code}`));
-
-      const fs = require('fs');
-      fs.rename(tempPath, filePath, (err: any) => {
-        if (err) return reject(err);
-        resolve();
-      });
+    ], async (error, stdout, stderr) => {
+      if (error) {
+        console.error('FFmpeg remuxing error:', stderr);
+        reject(error);
+      } else {
+        try {
+          await fs.rename(tempPath, inputPath); 
+          console.log('Remuxed and replaced original file successfully!');
+          resolve();
+        } catch (fsError) {
+          console.error('Failed to replace original file:', fsError);
+          reject(fsError);
+        }
+      }
     });
   });
-};
+}
 
-export default fixDuration;
+export default remuxAndOverwrite;
