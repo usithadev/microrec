@@ -1,5 +1,6 @@
 import { app, BrowserWindow, dialog, desktopCapturer, ipcMain } from 'electron';
-import {writeFile, WriteStream, createWriteStream} from "fs";
+import {WriteStream, createWriteStream} from "fs";
+import remux from "./remuxer";
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -61,16 +62,16 @@ ipcMain.handle('showSaveDialog', async () => {
   });
 });
 
-ipcMain.handle('saveFile', async (_event, filePath: string, arrayBuffer: ArrayBuffer) => {
-  const buffer = Buffer.from(arrayBuffer);
+// ipcMain.handle('saveFile', async (_event, filePath: string, arrayBuffer: ArrayBuffer) => {
+//   const buffer = Buffer.from(arrayBuffer);
 
-  return new Promise<void>((resolve, reject) => {
-    writeFile(filePath, buffer, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
-});
+//   return new Promise<void>((resolve, reject) => {
+//     writeFile(filePath, buffer, (err) => {
+//       if (err) reject(err);
+//       else resolve();
+//     });
+//   });
+// });
 
 // ipcMain.handle('startWriteStream', async (_event, filePath: string) => {
 //   writeStream = createWriteStream(filePath);
@@ -105,4 +106,9 @@ ipcMain.handle('stopWriteStream', async () => {
     });
     writeStream = null;
   }
+});
+
+
+ipcMain.handle('duration_fix', async (_event, filePath: string) => {
+  await remux(filePath);
 });

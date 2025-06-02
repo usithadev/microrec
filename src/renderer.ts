@@ -1,6 +1,8 @@
 import './index.css';
-import { Buffer } from "buffer";
-import fixWebmDuration from 'webm-duration-fix';
+// import { Buffer } from "buffer";
+// import fixWebmDuration from 'webm-duration-fix';
+
+
 
 let sources:any;
 let path:any | String;
@@ -69,6 +71,7 @@ async function startRecording() {
 
 async function stopVideo() {
   video.srcObject = null;
+  await (window as any).electronAPI.remux(path);
   path = null;
 
   
