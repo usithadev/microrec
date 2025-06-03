@@ -54,7 +54,7 @@ ipcMain.handle('get-sources', async () => {
 
 ipcMain.handle('showSaveDialog', async () => {
   return await dialog.showSaveDialog({
-    buttonLabel: 'Save video',
+    buttonLabel: 'Save Here and Start Recording',
     defaultPath: `vid-${Date.now()}.webm`,
     filters: [
       { name: 'WebM Video', extensions: ['webm'] }
