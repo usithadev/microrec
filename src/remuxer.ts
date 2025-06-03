@@ -2,8 +2,9 @@ import path from 'path';
 import { execFile } from 'child_process';
 import fs from 'fs/promises'; 
 import {app} from "electron";
+import ffmpeg from "@ffmpeg-installer/ffmpeg";
 
-const ffmpegPath = app.isPackaged ? path.join(process.resourcesPath, 'ffmpeg.exe') : path.join(__dirname, '../../assets', 'ffmpeg.exe');
+const ffmpegPath = app.isPackaged ? path.join(process.resourcesPath, 'ffmpeg.exe') : 'node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe';
 
 async function remuxAndOverwrite(inputPath: string): Promise<void> {
   const tempPath = inputPath + '.temp.webm'; 
